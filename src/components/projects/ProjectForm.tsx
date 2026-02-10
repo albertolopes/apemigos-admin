@@ -6,6 +6,8 @@ import Button from '../ui/button/Button';
 import Label from '../form/Label';
 import Input from '../form/input/InputField';
 import { Projeto } from '@/lib/types';
+import { uploadImage } from '@/lib/services/imageService';
+import { useToast } from '@/hooks/useToast';
 import 'react-quill-new/dist/quill.snow.css';
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
@@ -38,6 +40,10 @@ export default function ProjectForm({ onSave, onCancel, initialData, isSaving }:
         slug: '',
     });
 
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const { addToast } = useToast();
+
     useEffect(() => {
         if (initialData) {
             setFormData(initialData);
@@ -63,6 +69,38 @@ export default function ProjectForm({ onSave, onCancel, initialData, isSaving }:
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         await onSave(formData);
+    };
+
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const response = await uploadImage(file);
+            if (response.success) {
+                setFormData((prev) => ({ ...prev, cover: response.url }));
+                addToast({
+                    variant: 'success',
+                    title: 'Upload concluído',
+                    message: 'Imagem enviada com sucesso.',
+                });
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            addToast({
+                variant: 'error',
+                title: 'Erro no upload',
+                message: 'Não foi possível enviar a imagem.',
+            });
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
     };
 
     return (
@@ -125,15 +163,34 @@ export default function ProjectForm({ onSave, onCancel, initialData, isSaving }:
             </div>
 
             <div>
-                <Label htmlFor="cover">URL da Imagem de Capa</Label>
-                <Input
-                    type="text"
-                    id="cover"
-                    name="cover"
-                    value={formData.cover || ''}
-                    onChange={handleChange}
-                    placeholder="https://images.unsplash.com/..."
-                />
+                <Label htmlFor="cover">Imagem de Capa</Label>
+                <div className="flex gap-2">
+                    <Input
+                        type="text"
+                        id="cover"
+                        name="cover"
+                        value={formData.cover || ''}
+                        onChange={handleChange}
+                        placeholder="URL da imagem ou faça upload"
+                        className="flex-1"
+                    />
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept="image/*"
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleUploadClick}
+                        disabled={isUploading || isSaving}
+                        className="whitespace-nowrap"
+                    >
+                        {isUploading ? 'Enviando...' : 'Upload'}
+                    </Button>
+                </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-4">

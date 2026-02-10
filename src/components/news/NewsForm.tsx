@@ -6,6 +6,8 @@ import Button from '../ui/button/Button';
 import Label from '../form/Label';
 import Input from '../form/input/InputField'; // Caminho corrigido
 import { Noticia } from '@/lib/types';
+import { uploadImage } from '@/lib/services/imageService';
+import { useToast } from '@/hooks/useToast';
 import 'react-quill-new/dist/quill.snow.css';
 
 // Importação dinâmica do ReactQuill para evitar erros de SSR
@@ -38,6 +40,10 @@ export default function NewsForm({ onSave, onCancel, initialData, isSaving }: Ne
     longDescription: '',
   });
 
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { addToast } = useToast();
+
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -63,6 +69,38 @@ export default function NewsForm({ onSave, onCancel, initialData, isSaving }: Ne
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSave(formData);
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const response = await uploadImage(file);
+      if (response.success) {
+        setFormData((prev) => ({ ...prev, image: response.url }));
+        addToast({
+          variant: 'success',
+          title: 'Upload concluído',
+          message: 'Imagem enviada com sucesso.',
+        });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      addToast({
+        variant: 'error',
+        title: 'Erro no upload',
+        message: 'Não foi possível enviar a imagem.',
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -124,15 +162,34 @@ export default function NewsForm({ onSave, onCancel, initialData, isSaving }: Ne
       </div>
 
       <div>
-        <Label htmlFor="image">URL da Imagem</Label>
-        <Input
-          type="text"
-          id="image"
-          name="image"
-          value={formData.image || ''}
-          onChange={handleChange}
-          placeholder="https://exemplo.com/imagem.jpg"
-        />
+        <Label htmlFor="image">Imagem da Notícia</Label>
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            id="image"
+            name="image"
+            value={formData.image || ''}
+            onChange={handleChange}
+            placeholder="URL da imagem ou faça upload"
+            className="flex-1"
+          />
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/*"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleUploadClick}
+            disabled={isUploading || isSaving}
+            className="whitespace-nowrap"
+          >
+            {isUploading ? 'Enviando...' : 'Upload'}
+          </Button>
+        </div>
       </div>
 
       <div className="flex justify-end gap-3 pt-4">

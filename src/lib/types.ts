@@ -46,3 +46,21 @@ export interface Usuario {
   role: 'USUARIO' | 'ADMIN' | 'SERVICE';
   isActive: boolean;
 }
+
+export interface CloudinaryImage {
+  publicId: string;
+  url: string;
+  format?: string;
+  width?: number;
+  height?: number;
+  bytes?: number;
+  createdAt?: string;
+}
+
+export interface ImageUploadResponse {
+  success: boolean;
+  url: string;
+  public_id: string;
+  folder: string;
+  message: string;
+}

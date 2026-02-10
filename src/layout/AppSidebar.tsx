@@ -41,6 +41,11 @@ const navItems: NavItem[] = [
     icon: <BoxCubeIcon />,
     name: "Projetos",
     path: "/projetos",
+  },
+  {
+    icon: <GridIcon />,
+    name: "Imagens",
+    path: "/imagens",
   }
   // {
   //   icon: <CalenderIcon />,
