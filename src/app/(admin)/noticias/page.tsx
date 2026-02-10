@@ -156,12 +156,12 @@ export default function NewsPage() {
                 htmlFor="search"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                Buscar por palavra chave
+                Buscar notícia
               </label>
               <Input
                 id="search"
                 type="text"
-                placeholder="Ex: Esclerose"
+                placeholder="Ex: Campanha"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />

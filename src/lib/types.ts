@@ -12,6 +12,8 @@ export interface Noticia {
   date: string;
   shortDescription: string;
   slug: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface NoticiaConteudo {
@@ -23,9 +25,18 @@ export interface NoticiaConteudo {
 export interface Projeto {
   id: number;
   title: string;
+  description: string;
   shortDescription: string;
   cover: string;
   slug: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ProjetoConteudo {
+  id: number;
+  projeto: Projeto;
+  longDescription: string;
 }
 
 export interface Usuario {

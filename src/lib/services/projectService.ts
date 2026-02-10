@@ -3,13 +3,20 @@ import type { Projeto, Page } from '../types';
 
 export const getProjects = async (
   page = 0,
-  size = 10
+  size = 10,
+  keyword = ''
 ): Promise<Page<Projeto>> => {
-  const response = await api.get('/projetos', {
-    params: {
-      page,
-      size,
-    },
+  const url = keyword ? '/projetos/search' : '/projetos';
+  const params: any = {
+    page,
+    size,
+  };
+  if (keyword) {
+    params.keyword = keyword;
+  }
+
+  const response = await api.get(url, {
+    params,
   });
   return response.data;
 };

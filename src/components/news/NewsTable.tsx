@@ -7,8 +7,8 @@ import {
   TableCell,
   TableHeader,
   TableRow,
-} from '../ui/table/index'; // Ajuste o caminho conforme necessário
-import Button from '../ui/button/Button'; // Ajuste o caminho conforme necessário
+} from '../ui/table/index';
+import Button from '../ui/button/Button';
 import { Noticia } from '@/lib/types';
 
 interface NewsTableProps {
@@ -26,37 +26,75 @@ export default function NewsTable({ news, onEdit, onDelete }: NewsTableProps) {
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  Capa
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                   Título
                 </TableCell>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                  Data
+                  Resumo
                 </TableCell>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  Data Notícia
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  Criado em
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400">
                   Ações
                 </TableCell>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {news.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {item.title}
-                  </TableCell>
-                  <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}
-                  </TableCell>
-                  <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => onEdit(item)}>
-                        Editar
-                      </Button>
-                      <Button size="sm" variant="outline" className="text-error-500 hover:bg-error-50" onClick={() => onDelete(item.id)}>
-                        Excluir
-                      </Button>
-                    </div>
+              {news.length > 0 ? (
+                news.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="px-5 py-4 text-start">
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-800">
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[10px] text-gray-400">
+                            N/A
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400 font-medium">
+                      {item.title}
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400 max-w-xs truncate">
+                      {item.shortDescription}
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      {item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-end text-theme-sm dark:text-gray-400">
+                      <div className="flex gap-2 justify-end">
+                        <Button size="sm" variant="outline" onClick={() => onEdit(item)}>
+                          Editar
+                        </Button>
+                        <Button size="sm" variant="outline" className="text-error-500 hover:bg-error-50" onClick={() => onDelete(item.id)}>
+                          Excluir
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="px-5 py-8 text-center text-gray-500 dark:text-gray-400">
+                    Nenhuma notícia encontrada.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>

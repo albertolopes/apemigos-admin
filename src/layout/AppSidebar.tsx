@@ -36,6 +36,11 @@ const navItems: NavItem[] = [
     icon: <ListIcon />,
     name: "Notícias",
     path: "/noticias", // Caminho corrigido para /noticias
+  },
+  {
+    icon: <BoxCubeIcon />,
+    name: "Projetos",
+    path: "/projetos",
   }
   // {
   //   icon: <CalenderIcon />,
