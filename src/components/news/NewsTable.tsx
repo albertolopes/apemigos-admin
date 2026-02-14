@@ -9,17 +9,19 @@ import {
   TableRow,
 } from '../ui/table/index';
 import Button from '../ui/button/Button';
-import { Noticia } from '@/lib/types';
-import { EyeIcon } from '@/icons'; // Importando ícone de visualização
+import Badge from '../ui/badge/Badge'; // Importando Badge
+import { Noticia, NoticiaStatus } from '@/lib/types';
+import { EyeIcon, CheckLineIcon, CloseLineIcon } from '@/icons'; // Importando ícones
 
 interface NewsTableProps {
   news: Noticia[];
   onEdit: (news: Noticia) => void;
   onDelete: (id: number) => void;
-  onPreview: (news: Noticia) => void; // Nova prop
+  onPreview: (news: Noticia) => void;
+  onStatusChange: (id: number, status: NoticiaStatus) => void; // Nova prop
 }
 
-export default function NewsTable({ news, onEdit, onDelete, onPreview }: NewsTableProps) {
+export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusChange }: NewsTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
@@ -34,13 +36,10 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview }: NewsTab
                   Título
                 </TableCell>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                  Resumo
+                  Status
                 </TableCell>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                   Data Notícia
-                </TableCell>
-                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                  Criado em
                 </TableCell>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400">
                   Ações
@@ -69,20 +68,46 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview }: NewsTab
                     <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400 font-medium">
                       {item.title}
                     </TableCell>
-                    <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400 max-w-xs truncate">
-                      {item.shortDescription}
+                    <TableCell className="px-5 py-4 text-start">
+                      <Badge
+                        size="sm"
+                        color={item.status === 'APROVADO' ? 'success' : 'warning'}
+                      >
+                        {item.status || 'PENDENTE'}
+                      </Badge>
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       {item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}
-                    </TableCell>
-                    <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-end text-theme-sm dark:text-gray-400">
                       <div className="flex gap-2 justify-end">
                         <Button size="sm" variant="outline" onClick={() => onPreview(item)} title="Pré-visualizar">
                           <EyeIcon className="w-4 h-4" />
                         </Button>
+                        
+                        {/* Botão de Aprovar/Desaprovar */}
+                        {item.status === 'APROVADO' ? (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-warning-500 hover:bg-warning-50"
+                            onClick={() => onStatusChange(item.id, 'PENDENTE')}
+                            title="Tornar Pendente"
+                          >
+                            <CloseLineIcon className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-success-500 hover:bg-success-50"
+                            onClick={() => onStatusChange(item.id, 'APROVADO')}
+                            title="Aprovar"
+                          >
+                            <CheckLineIcon className="w-4 h-4" />
+                          </Button>
+                        )}
+
                         <Button size="sm" variant="outline" onClick={() => onEdit(item)}>
                           Editar
                         </Button>
@@ -95,7 +120,7 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview }: NewsTab
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="px-5 py-8 text-center text-gray-500 dark:text-gray-400">
+                  <TableCell colSpan={5} className="px-5 py-8 text-center text-gray-500 dark:text-gray-400">
                     Nenhuma notícia encontrada.
                   </TableCell>
                 </TableRow>

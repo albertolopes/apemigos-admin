@@ -5,6 +5,8 @@ export interface Page<T> {
   number: number;
 }
 
+export type NoticiaStatus = 'APROVADO' | 'PENDENTE';
+
 export interface Noticia {
   id: number;
   image: string;
@@ -12,6 +14,7 @@ export interface Noticia {
   date: string;
   shortDescription: string;
   slug: string;
+  status: NoticiaStatus; // Novo campo
   createdAt?: string;
   updatedAt?: string;
 }
@@ -25,18 +28,9 @@ export interface NoticiaConteudo {
 export interface Projeto {
   id: number;
   title: string;
-  description: string;
   shortDescription: string;
   cover: string;
   slug: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface ProjetoConteudo {
-  id: number;
-  projeto: Projeto;
-  longDescription: string;
 }
 
 export interface Usuario {
@@ -45,22 +39,4 @@ export interface Usuario {
   email: string;
   role: 'USUARIO' | 'ADMIN' | 'SERVICE';
   isActive: boolean;
-}
-
-export interface CloudinaryImage {
-  publicId: string;
-  url: string;
-  format?: string;
-  width?: number;
-  height?: number;
-  bytes?: number;
-  createdAt?: string;
-}
-
-export interface ImageUploadResponse {
-  success: boolean;
-  url: string;
-  public_id: string;
-  folder: string;
-  message: string;
 }

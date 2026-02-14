@@ -1,9 +1,11 @@
 import api from './api';
-import type { Noticia, NoticiaConteudo, Page } from '../types';
+import type { Noticia, NoticiaConteudo, Page, NoticiaStatus } from '../types';
 
 // This is the payload for creating the content, matching your specification.
 interface NoticiaConteudoCreatePayload {
-  noticia: Noticia;
+  noticia: {
+    id: number;
+  };
   longDescription: string;
 }
 
@@ -33,19 +35,9 @@ export const createNewsWithContent = async (
     slug: newsData.slug,
   });
 
-  // 2. Sanitize the returned news object to pass only required fields
-  // The backend might reject the request if extra fields like 'date' are sent
-  const sanitizedNews = {
-    id: newNews.id,
-    title: newNews.title,
-    shortDescription: newNews.shortDescription,
-    image: newNews.image,
-    slug: newNews.slug,
-  };
-
-  // 3. Use the sanitized object to create the content
+  // 2. Use the returned ID to create the content with the correct payload structure
   await createNewsContent({
-    noticia: sanitizedNews as Noticia,
+    noticia: { id: newNews.id }, // Correctly passing the nested ID
     longDescription: newsData.longDescription,
   });
 
@@ -54,31 +46,18 @@ export const createNewsWithContent = async (
 
 export const getNews = async (
   page = 0,
-  size = 10,
-  keyword = ''
+  size = 10
 ): Promise<Page<Noticia>> => {
-  const url = keyword ? '/noticias/search' : '/noticias';
-  const params: any = {
-    page,
-    size,
-  };
-  if (keyword) {
-    params.keyword = keyword;
-  }
-
-  const response = await api.get(url, {
-    params,
+  const response = await api.get('/noticias', {
+    params: {
+      page,
+      size,
+    },
   });
   return response.data;
 };
 
-export const getNewsContent = async (id: number): Promise<NoticiaConteudo> => {
-  const response = await api.get(`/noticias/conteudo/${id}`);
-  return response.data;
-};
-
-// Internal function to update the news item
-const updateNewsItem = async (
+export const updateNews = async (
   id: number,
   news: Partial<Noticia>
 ): Promise<Noticia> => {
@@ -86,49 +65,18 @@ const updateNewsItem = async (
   return response.data;
 };
 
-// Internal function to update the news content
-const updateNewsContent = async (
+export const updateNewsStatus = async (
   id: number,
-  content: NoticiaConteudoCreatePayload
-): Promise<NoticiaConteudo> => {
-  const response = await api.put(`/noticias/conteudo/${id}`, content);
+  status: NoticiaStatus
+): Promise<Noticia> => {
+  // O endpoint espera o enum no corpo. Enviamos como string JSON.
+  // É importante definir o Content-Type como application/json para que o backend entenda.
+  const response = await api.patch(`/noticias/${id}/status`, JSON.stringify(status), {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
   return response.data;
-};
-
-export const updateNewsWithContent = async (
-  id: number,
-  newsData: Partial<Noticia> & { longDescription: string }
-): Promise<Noticia> => {
-  // 1. Update the news item
-  const updatedNews = await updateNewsItem(id, {
-    title: newsData.title,
-    shortDescription: newsData.shortDescription,
-    image: newsData.image,
-    slug: newsData.slug,
-  });
-  // 2. Sanitize the returned news object
-  const sanitizedNews = {
-    id: updatedNews.id,
-    title: updatedNews.title,
-    shortDescription: updatedNews.shortDescription,
-    image: updatedNews.image,
-    slug: updatedNews.slug,
-  };
-
-  // 3. Update the content
-  await updateNewsContent(id, {
-    noticia: sanitizedNews as Noticia,
-    longDescription: newsData.longDescription,
-  });
-
-  return updatedNews;
-};
-
-export const updateNews = async (
-  id: number,
-  news: Partial<Noticia>
-): Promise<Noticia> => {
-  return updateNewsItem(id, news);
 };
 
 export const deleteNews = async (id: number): Promise<void> => {
