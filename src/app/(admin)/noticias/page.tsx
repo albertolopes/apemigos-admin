@@ -3,39 +3,31 @@
 import React, { useEffect, useState } from 'react';
 import {
   getNews,
-  getNewsContent,
   deleteNews,
   createNewsWithContent,
-  updateNewsWithContent,
+  updateNews,
 } from '@/lib/services/newsService';
 import { Noticia, Page } from '@/lib/types';
 import NewsTable from '@/components/news/NewsTable';
 import NewsForm from '@/components/news/NewsForm';
+import NewsContent from '@/components/news/NewsContent'; // Importando o componente de visualização
 import Button from '@/components/ui/button/Button';
 import { Modal } from '@/components/ui/modal';
-import ConfirmDialog from '@/components/ui/modal/ConfirmDialog';
-import Alert from '@/components/ui/alert/Alert';
-
-import Input from '@/components/form/input/InputField';
-import { useToast } from '@/hooks/useToast';
+import api from '@/lib/services/api'; // Importando api para buscar conteúdo
 
 export default function NewsPage() {
   const [news, setNews] = useState<Noticia[]>([]);
   const [page, setPage] = useState<Page<Noticia> | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false); // Estado para o modal de preview
   const [isSaving, setIsSaving] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedNews, setSelectedNews] = useState<
     (Partial<Noticia> & { longDescription?: string }) | null
   >(null);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [newsToDeleteId, setNewsToDeleteId] = useState<number | null>(null);
-  const { addToast } = useToast();
 
   const fetchNews = async (pageNumber = 0) => {
     try {
-      // Pass searchTerm to getNews
-      const response = await getNews(pageNumber, 10, searchTerm);
+      const response = await getNews(pageNumber);
       setPage(response);
       setNews(response.content);
     } catch (error) {
@@ -45,65 +37,44 @@ export default function NewsPage() {
 
   useEffect(() => {
     fetchNews();
-  }, []); // Initial load
+  }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchNews(0); // Reset to page 0 on new search
+  // Função auxiliar para buscar o conteúdo completo
+  const fetchFullContent = async (id: number) => {
+    try {
+      const response = await api.get(`/noticias/conteudo/${id}`);
+      return response.data.longDescription;
+    } catch (error) {
+      console.error('Erro ao buscar conteúdo da notícia:', error);
+      return '';
+    }
   };
 
   const handleAddClick = () => {
     setSelectedNews(null);
     setIsModalOpen(true);
   };
-  // ... (rest of imports/logic)
-
 
   const handleEditClick = async (item: Noticia) => {
-    try {
-      const content = await getNewsContent(item.id);
-
-      setSelectedNews({
-        ...item,
-        longDescription: content.longDescription || '',
-      });
-      setIsModalOpen(true);
-    } catch (error) {
-      console.error('Erro ao buscar conteúdo da notícia:', error);
-      addToast({
-        variant: 'error',
-        title: 'Erro de Carregamento',
-        message: 'Não foi possível carregar o conteúdo completo da notícia.'
-      });
-    }
+    const longDescription = await fetchFullContent(item.id);
+    setSelectedNews({ ...item, longDescription });
+    setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (id: number) => {
-    setNewsToDeleteId(id);
-    setIsConfirmOpen(true);
+  const handlePreviewClick = async (item: Noticia) => {
+    const longDescription = await fetchFullContent(item.id);
+    setSelectedNews({ ...item, longDescription });
+    setIsPreviewOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    if (newsToDeleteId === null) return;
-
-    try {
-      await deleteNews(newsToDeleteId);
-      addToast({
-        variant: 'success',
-        title: 'Excluído',
-        message: 'Notícia excluída com sucesso.'
-      });
-      fetchNews();
-    } catch (error) {
-      console.error('Erro ao excluir notícia:', error);
-      addToast({
-        variant: 'error',
-        title: 'Erro de Exclusão',
-        message: 'Não foi possível excluir a notícia.'
-      });
-    } finally {
-      setIsConfirmOpen(false);
-      setNewsToDeleteId(null);
+  const handleDeleteClick = async (id: number) => {
+    if (confirm('Tem certeza que deseja excluir esta notícia?')) {
+      try {
+        await deleteNews(id);
+        fetchNews();
+      } catch (error) {
+        console.error('Erro ao excluir notícia:', error);
+      }
     }
   };
 
@@ -113,10 +84,7 @@ export default function NewsPage() {
     setIsSaving(true);
     try {
       if (newsData.id) {
-        await updateNewsWithContent(newsData.id, {
-          ...newsData,
-          longDescription: newsData.longDescription || '',
-        });
+        await updateNews(newsData.id, newsData);
       } else {
         await createNewsWithContent({
           ...newsData,
@@ -125,18 +93,9 @@ export default function NewsPage() {
       }
       await fetchNews();
       setIsModalOpen(false);
-      addToast({
-        variant: 'success',
-        title: 'Sucesso!',
-        message: newsData.id ? 'Notícia atualizada com sucesso.' : 'Notícia criada com sucesso.'
-      });
     } catch (error) {
       console.error('Erro ao salvar notícia:', error);
-      addToast({
-        variant: 'error',
-        title: 'Erro ao Salvar',
-        message: 'Ocorreu um erro ao tentar salvar a notícia.'
-      });
+      alert('Erro ao salvar notícia. Verifique o console.');
     } finally {
       setIsSaving(false);
     }
@@ -144,74 +103,23 @@ export default function NewsPage() {
 
   return (
     <div className="p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4 sm:mb-0">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
           Gerenciamento de Notícias
         </h1>
-
-        <div className="flex flex-col sm:flex-row items-end gap-3 w-full sm:w-auto">
-          <form onSubmit={handleSearch} className="flex items-end gap-2 w-full sm:w-auto">
-            <div className="w-full sm:w-64">
-              <label
-                htmlFor="search"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Buscar notícia
-              </label>
-              <Input
-                id="search"
-                type="text"
-                placeholder="Ex: Campanha"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </form>
-          <Button variant="primary" onClick={handleAddClick} className="mb-[1px]">
-            Adicionar Notícia
-          </Button>
-        </div>
+        <Button variant="primary" onClick={handleAddClick}>
+          Adicionar Notícia
+        </Button>
       </div>
 
       <NewsTable
         news={news}
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
+        onPreview={handlePreviewClick}
       />
 
-      {/* Pagination Controls */}
-      {page && (
-        <div className="flex items-center justify-between mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Total de itens: <span className="font-medium text-gray-900 dark:text-white">{page.totalElements}</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700 dark:text-gray-300 mr-2">
-              Página {page.number + 1} de {page.totalPages}
-            </span>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchNews(page.number - 1)}
-              disabled={page.number === 0}
-            >
-              Anterior
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchNews(page.number + 1)}
-              disabled={page.number >= page.totalPages - 1}
-            >
-              Próxima
-            </Button>
-          </div>
-        </div>
-      )}
-
+      {/* Modal de Formulário */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-4xl">
         <NewsForm
           onSave={handleSave}
@@ -221,14 +129,42 @@ export default function NewsPage() {
         />
       </Modal>
 
-      <ConfirmDialog
-        isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="Confirmar Exclusão"
-        message="Tem certeza que deseja excluir esta notícia? Esta ação não pode ser desfeita."
-        confirmText="Excluir"
-      />
+      {/* Modal de Pré-visualização */}
+      <Modal isOpen={isPreviewOpen} onClose={() => setIsPreviewOpen(false)} className="max-w-4xl">
+        <div className="p-6 bg-white dark:bg-gray-800 rounded-xl">
+          <div className="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-4">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+              {selectedNews?.title}
+            </h2>
+            <button 
+              onClick={() => setIsPreviewOpen(false)}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              ✕
+            </button>
+          </div>
+          
+          {selectedNews?.image && (
+            <div className="mb-6 w-full h-64 relative rounded-lg overflow-hidden">
+              <img 
+                src={selectedNews.image} 
+                alt={selectedNews.title} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
+          <div className="max-h-[60vh] overflow-y-auto pr-2">
+            <NewsContent html={selectedNews?.longDescription || ''} />
+          </div>
+          
+          <div className="mt-6 flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+            <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
+              Fechar
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

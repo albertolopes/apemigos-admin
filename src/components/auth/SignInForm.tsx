@@ -3,12 +3,11 @@ import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
-import Link from "next/link";
+import { EyeCloseIcon, EyeIcon } from "@/icons";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginApi, setToken } from "@/lib/services/authService";
-import { useToast } from "@/hooks/useToast";
+import { loginApi } from "@/lib/services/authService";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,24 +15,22 @@ export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { addToast } = useToast();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
       const token = await loginApi(email, password);
-      setToken(token);
-      router.push("/");
+      login(token); // Atualiza o contexto
+      router.push("/"); // Redireciona para o dashboard
     } catch (err: any) {
       console.error("Login error:", err);
-      addToast({
-        variant: "error",
-        title: "Erro de Autenticação",
-        message: "Falha no login. Verifique suas credenciais.",
-      });
+      setError("Falha no login. Verifique suas credenciais.");
     } finally {
       setLoading(false);
     }
@@ -52,11 +49,13 @@ export default function SignInForm() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Digite seu email e senha para entrar!
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Em caso de dúvidas, entre em contato com o administrador do sistema.
-            </p>
           </div>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
@@ -100,13 +99,13 @@ export default function SignInForm() {
                 <div className="flex items-center gap-3">
                   <Checkbox checked={isChecked} onChange={setIsChecked} />
                   <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                    Keep me logged in
+                    Manter conectado
                   </span>
                 </div>
               </div>
               <div>
                 <Button className="w-full" size="sm" type="submit" disabled={loading}>
-                  {loading ? "Signing in..." : "Sign in"}
+                  {loading ? "Entrando..." : "Entrar"}
                 </Button>
               </div>
             </div>

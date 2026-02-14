@@ -10,14 +10,16 @@ import {
 } from '../ui/table/index';
 import Button from '../ui/button/Button';
 import { Noticia } from '@/lib/types';
+import { EyeIcon } from '@/icons'; // Importando ícone de visualização
 
 interface NewsTableProps {
   news: Noticia[];
   onEdit: (news: Noticia) => void;
   onDelete: (id: number) => void;
+  onPreview: (news: Noticia) => void; // Nova prop
 }
 
-export default function NewsTable({ news, onEdit, onDelete }: NewsTableProps) {
+export default function NewsTable({ news, onEdit, onDelete, onPreview }: NewsTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
@@ -78,6 +80,9 @@ export default function NewsTable({ news, onEdit, onDelete }: NewsTableProps) {
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-end text-theme-sm dark:text-gray-400">
                       <div className="flex gap-2 justify-end">
+                        <Button size="sm" variant="outline" onClick={() => onPreview(item)} title="Pré-visualizar">
+                          <EyeIcon className="w-4 h-4" />
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => onEdit(item)}>
                           Editar
                         </Button>
