@@ -17,7 +17,7 @@ import { Modal } from '@/components/ui/modal';
 import ConfirmationDialog from '@/components/ui/modal/ConfirmationDialog';
 import api from '@/lib/services/api';
 import { useToast } from '@/hooks/useToast';
-import Pagination from '@/components/common/Pagination'; // Importando Pagination
+import Pagination from '@/components/common/Pagination';
 
 export default function NewsPage() {
   const [news, setNews] = useState<Noticia[]>([]);
@@ -31,6 +31,8 @@ export default function NewsPage() {
   const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isStatusUpdating, setIsStatusUpdating] = useState(false); // Novo estado para loading de status
+  const [isDeleting, setIsDeleting] = useState(false); // Novo estado para loading de exclusão
   
   // Estados para seleção
   const [selectedNews, setSelectedNews] = useState<
@@ -103,9 +105,10 @@ export default function NewsPage() {
 
   const confirmDelete = async () => {
     if (newsToDelete) {
+      setIsDeleting(true);
       try {
         await deleteNews(newsToDelete);
-        fetchNews(page?.number || 0); // Mantém na página atual
+        fetchNews(page?.number || 0);
         addToast({
           variant: 'success',
           title: 'Sucesso',
@@ -119,6 +122,7 @@ export default function NewsPage() {
           message: 'Não foi possível excluir a notícia.',
         });
       } finally {
+        setIsDeleting(false);
         setIsDeleteConfirmOpen(false);
         setNewsToDelete(null);
       }
@@ -133,9 +137,10 @@ export default function NewsPage() {
 
   const confirmStatusChange = async () => {
     if (statusToUpdate) {
+      setIsStatusUpdating(true);
       try {
         await updateNewsStatus(statusToUpdate.id, statusToUpdate.status);
-        fetchNews(page?.number || 0); // Mantém na página atual
+        fetchNews(page?.number || 0);
         addToast({
           variant: 'success',
           title: 'Sucesso',
@@ -149,6 +154,7 @@ export default function NewsPage() {
           message: 'Não foi possível atualizar o status da notícia.',
         });
       } finally {
+        setIsStatusUpdating(false);
         setIsStatusConfirmOpen(false);
         setStatusToUpdate(null);
       }
@@ -178,7 +184,7 @@ export default function NewsPage() {
           message: 'Notícia criada com sucesso!',
         });
       }
-      await fetchNews(page?.number || 0); // Mantém na página atual
+      await fetchNews(page?.number || 0);
       setIsModalOpen(false);
     } catch (error) {
       console.error('Erro ao salvar notícia:', error);
@@ -277,8 +283,9 @@ export default function NewsPage() {
         onConfirm={confirmDelete}
         title="Confirmar Exclusão"
         message="Tem certeza que deseja excluir esta notícia? Esta ação não pode ser desfeita."
-        confirmText="Excluir"
+        confirmText={isDeleting ? "Excluindo..." : "Excluir"}
         variant="danger"
+        isLoading={isDeleting} // Passando loading
       />
 
       {/* Diálogo de Confirmação de Status */}
@@ -294,6 +301,7 @@ export default function NewsPage() {
         }
         confirmText={statusToUpdate?.status === 'APROVADO' ? "Aprovar" : "Tornar Pendente"}
         variant={statusToUpdate?.status === 'APROVADO' ? "primary" : "warning"}
+        isLoading={isStatusUpdating} // Passando loading
       />
     </div>
   );
