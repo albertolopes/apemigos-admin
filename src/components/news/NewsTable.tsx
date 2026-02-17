@@ -9,19 +9,21 @@ import {
   TableRow,
 } from '../ui/table/index';
 import Button from '../ui/button/Button';
-import Badge from '../ui/badge/Badge'; // Importando Badge
+import Badge from '../ui/badge/Badge';
 import { Noticia, NoticiaStatus } from '@/lib/types';
-import { EyeIcon, CheckLineIcon, CloseLineIcon } from '@/icons'; // Importando ícones
+import { EyeIcon, CheckLineIcon, CloseLineIcon } from '@/icons';
+import TableLoading from '../ui/table/TableLoading'; // Importando loading
 
 interface NewsTableProps {
   news: Noticia[];
   onEdit: (news: Noticia) => void;
   onDelete: (id: number) => void;
   onPreview: (news: Noticia) => void;
-  onStatusChange: (id: number, status: NoticiaStatus) => void; // Nova prop
+  onStatusChange: (id: number, status: NoticiaStatus) => void;
+  isLoading?: boolean; // Nova prop
 }
 
-export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusChange }: NewsTableProps) {
+export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusChange, isLoading }: NewsTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
@@ -41,13 +43,18 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusC
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                   Data Notícia
                 </TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  Criado em
+                </TableCell>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400">
                   Ações
                 </TableCell>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {news.length > 0 ? (
+              {isLoading ? (
+                <TableLoading columns={6} />
+              ) : news.length > 0 ? (
                 news.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="px-5 py-4 text-start">
@@ -79,13 +86,15 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusC
                     <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       {item.date ? new Date(item.date).toLocaleDateString() : 'N/A'}
                     </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                    </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-end text-theme-sm dark:text-gray-400">
                       <div className="flex gap-2 justify-end">
                         <Button size="sm" variant="outline" onClick={() => onPreview(item)} title="Pré-visualizar">
                           <EyeIcon className="w-4 h-4" />
                         </Button>
                         
-                        {/* Botão de Aprovar/Desaprovar */}
                         {item.status === 'APROVADO' ? (
                           <Button 
                             size="sm" 
@@ -120,7 +129,7 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusC
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="px-5 py-8 text-center text-gray-500 dark:text-gray-400">
+                  <TableCell colSpan={6} className="px-5 py-8 text-center text-gray-500 dark:text-gray-400">
                     Nenhuma notícia encontrada.
                   </TableCell>
                 </TableRow>

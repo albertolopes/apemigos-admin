@@ -7,6 +7,7 @@ import AssociadoTable from '@/components/carteirinha/AssociadoTable';
 import AssociadoModal from '@/components/carteirinha/AssociadoModal';
 import Input from '@/components/form/input/InputField';
 import Button from '@/components/ui/button/Button';
+import { useToast } from '@/hooks/useToast';
 
 export default function CarteirinhaPage() {
   const [associados, setAssociados] = useState<AssociadoResponseDTO[]>([]);
@@ -14,14 +15,25 @@ export default function CarteirinhaPage() {
   const [keyword, setKeyword] = useState('');
   const [selectedAssociado, setSelectedAssociado] = useState<AssociadoResponseDTO | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Estado de loading
+
+  const { addToast } = useToast();
 
   const fetchAssociados = async (pageNumber = 0) => {
+    setIsLoading(true);
     try {
       const response = await getAssociados(pageNumber, 10, keyword);
       setPage(response);
       setAssociados(response.content);
     } catch (error) {
       console.error('Erro ao buscar associados:', error);
+      addToast({
+        variant: 'error',
+        title: 'Erro',
+        message: 'Não foi possível carregar os associados.',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -44,9 +56,18 @@ export default function CarteirinhaPage() {
       await updateAssociadoStatus(id, status);
       fetchAssociados(page?.number || 0);
       setIsModalOpen(false);
+      addToast({
+        variant: 'success',
+        title: 'Sucesso',
+        message: 'Status atualizado com sucesso!',
+      });
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
-      alert('Erro ao atualizar status.');
+      addToast({
+        variant: 'error',
+        title: 'Erro',
+        message: 'Não foi possível atualizar o status.',
+      });
     }
   };
 
@@ -63,20 +84,20 @@ export default function CarteirinhaPage() {
             onChange={(e) => setKeyword(e.target.value)}
             className="w-full sm:w-64"
           />
-          <Button type="submit" variant="primary">
-            Buscar
+          <Button type="submit" variant="primary" disabled={isLoading}>
+            {isLoading ? 'Buscando...' : 'Buscar'}
           </Button>
         </form>
       </div>
 
-      <AssociadoTable associados={associados} onView={handleView} />
+      <AssociadoTable associados={associados} onView={handleView} isLoading={isLoading} />
 
       {/* Paginação simples */}
       {page && (
         <div className="mt-4 flex justify-center gap-2">
           <Button
             variant="outline"
-            disabled={page.first}
+            disabled={page.first || isLoading}
             onClick={() => fetchAssociados(page.number - 1)}
           >
             Anterior
@@ -86,7 +107,7 @@ export default function CarteirinhaPage() {
           </span>
           <Button
             variant="outline"
-            disabled={page.last}
+            disabled={page.last || isLoading}
             onClick={() => fetchAssociados(page.number + 1)}
           >
             Próxima

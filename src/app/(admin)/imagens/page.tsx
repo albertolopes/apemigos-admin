@@ -16,6 +16,7 @@ export default function ImagesPage() {
     const [imageToDelete, setImageToDelete] = useState<string | null>(null);
     const [searchId, setSearchId] = useState('');
     const [isSearching, setIsSearching] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false); // Estado de loading para exclusão
     const [serviceStatus, setServiceStatus] = useState<'checking' | 'up' | 'down'>('checking');
 
     const { addToast } = useToast();
@@ -40,6 +41,7 @@ export default function ImagesPage() {
     const handleConfirmDelete = async () => {
         if (!imageToDelete) return;
 
+        setIsDeleting(true);
         try {
             await deleteImage(imageToDelete);
             setSessionImages((prev) => prev.filter((img) => img.publicId !== imageToDelete));
@@ -56,6 +58,7 @@ export default function ImagesPage() {
                 message: 'Não foi possível excluir a imagem. Verifique se o ID está correto.',
             });
         } finally {
+            setIsDeleting(false);
             setIsConfirmOpen(false);
             setImageToDelete(null);
         }
@@ -148,7 +151,8 @@ export default function ImagesPage() {
                 onConfirm={handleConfirmDelete}
                 title="Excluir Imagem"
                 message="Tem certeza que deseja excluir esta imagem do Cloudinary? Esta ação é irreversível."
-                confirmText="Excluir"
+                confirmText={isDeleting ? "Excluindo..." : "Excluir"}
+                // Passando isDeleting para desabilitar o botão se o componente suportar (ou via confirmText como fiz)
             />
         </div>
     );

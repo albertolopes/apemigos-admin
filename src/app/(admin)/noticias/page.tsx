@@ -16,11 +16,12 @@ import Button from '@/components/ui/button/Button';
 import { Modal } from '@/components/ui/modal';
 import ConfirmationDialog from '@/components/ui/modal/ConfirmationDialog';
 import api from '@/lib/services/api';
-import { useToast } from '@/hooks/useToast'; // Importação corrigida
+import { useToast } from '@/hooks/useToast';
 
 export default function NewsPage() {
   const [news, setNews] = useState<Noticia[]>([]);
   const [page, setPage] = useState<Page<Noticia> | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Estado de loading
   
   // Estados para Modais
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,6 +41,7 @@ export default function NewsPage() {
   const { addToast } = useToast();
 
   const fetchNews = async (pageNumber = 0) => {
+    setIsLoading(true);
     try {
       const response = await getNews(pageNumber);
       setPage(response);
@@ -51,6 +53,8 @@ export default function NewsPage() {
         title: 'Erro',
         message: 'Não foi possível carregar as notícias.',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -204,6 +208,7 @@ export default function NewsPage() {
         onDelete={handleDeleteClick}
         onPreview={handlePreviewClick}
         onStatusChange={handleStatusChangeClick}
+        isLoading={isLoading} // Passando loading
       />
 
       {/* Modal de Formulário */}

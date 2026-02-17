@@ -12,10 +12,12 @@ import Button from '../ui/button/Button';
 import Badge from '../ui/badge/Badge';
 import { AssociadoResponseDTO, StatusCarteirinha } from '@/lib/types';
 import { EyeIcon } from '@/icons';
+import TableLoading from '../ui/table/TableLoading'; // Importando loading
 
 interface AssociadoTableProps {
   associados: AssociadoResponseDTO[];
   onView: (associado: AssociadoResponseDTO) => void;
+  isLoading?: boolean; // Nova prop
 }
 
 const getStatusColor = (status: StatusCarteirinha) => {
@@ -38,7 +40,7 @@ const getStatusColor = (status: StatusCarteirinha) => {
   }
 };
 
-export default function AssociadoTable({ associados, onView }: AssociadoTableProps) {
+export default function AssociadoTable({ associados, onView, isLoading }: AssociadoTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
@@ -64,7 +66,9 @@ export default function AssociadoTable({ associados, onView }: AssociadoTablePro
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {associados.length > 0 ? (
+              {isLoading ? (
+                <TableLoading columns={5} />
+              ) : associados.length > 0 ? (
                 associados.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400 font-medium">
