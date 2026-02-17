@@ -17,11 +17,12 @@ import { Modal } from '@/components/ui/modal';
 import ConfirmationDialog from '@/components/ui/modal/ConfirmationDialog';
 import api from '@/lib/services/api';
 import { useToast } from '@/hooks/useToast';
+import Pagination from '@/components/common/Pagination'; // Importando Pagination
 
 export default function NewsPage() {
   const [news, setNews] = useState<Noticia[]>([]);
   const [page, setPage] = useState<Page<Noticia> | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Estado de loading
+  const [isLoading, setIsLoading] = useState(true);
   
   // Estados para Modais
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -104,7 +105,7 @@ export default function NewsPage() {
     if (newsToDelete) {
       try {
         await deleteNews(newsToDelete);
-        fetchNews();
+        fetchNews(page?.number || 0); // Mantém na página atual
         addToast({
           variant: 'success',
           title: 'Sucesso',
@@ -134,7 +135,7 @@ export default function NewsPage() {
     if (statusToUpdate) {
       try {
         await updateNewsStatus(statusToUpdate.id, statusToUpdate.status);
-        fetchNews();
+        fetchNews(page?.number || 0); // Mantém na página atual
         addToast({
           variant: 'success',
           title: 'Sucesso',
@@ -177,7 +178,7 @@ export default function NewsPage() {
           message: 'Notícia criada com sucesso!',
         });
       }
-      await fetchNews();
+      await fetchNews(page?.number || 0); // Mantém na página atual
       setIsModalOpen(false);
     } catch (error) {
       console.error('Erro ao salvar notícia:', error);
@@ -208,8 +209,19 @@ export default function NewsPage() {
         onDelete={handleDeleteClick}
         onPreview={handlePreviewClick}
         onStatusChange={handleStatusChangeClick}
-        isLoading={isLoading} // Passando loading
+        isLoading={isLoading}
       />
+
+      {/* Paginação Completa */}
+      {page && (
+        <Pagination
+          currentPage={page.number}
+          totalPages={page.totalPages}
+          totalElements={page.totalElements}
+          pageSize={page.size || 10}
+          onPageChange={fetchNews}
+        />
+      )}
 
       {/* Modal de Formulário */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-4xl">

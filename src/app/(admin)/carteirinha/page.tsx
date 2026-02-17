@@ -8,6 +8,7 @@ import AssociadoModal from '@/components/carteirinha/AssociadoModal';
 import Input from '@/components/form/input/InputField';
 import Button from '@/components/ui/button/Button';
 import { useToast } from '@/hooks/useToast';
+import Pagination from '@/components/common/Pagination'; // Importando Pagination
 
 export default function CarteirinhaPage() {
   const [associados, setAssociados] = useState<AssociadoResponseDTO[]>([]);
@@ -15,7 +16,7 @@ export default function CarteirinhaPage() {
   const [keyword, setKeyword] = useState('');
   const [selectedAssociado, setSelectedAssociado] = useState<AssociadoResponseDTO | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Estado de loading
+  const [isLoading, setIsLoading] = useState(true);
 
   const { addToast } = useToast();
 
@@ -92,27 +93,15 @@ export default function CarteirinhaPage() {
 
       <AssociadoTable associados={associados} onView={handleView} isLoading={isLoading} />
 
-      {/* Paginação simples */}
+      {/* Paginação Completa */}
       {page && (
-        <div className="mt-4 flex justify-center gap-2">
-          <Button
-            variant="outline"
-            disabled={page.first || isLoading}
-            onClick={() => fetchAssociados(page.number - 1)}
-          >
-            Anterior
-          </Button>
-          <span className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-            Página {page.number + 1} de {page.totalPages}
-          </span>
-          <Button
-            variant="outline"
-            disabled={page.last || isLoading}
-            onClick={() => fetchAssociados(page.number + 1)}
-          >
-            Próxima
-          </Button>
-        </div>
+        <Pagination
+          currentPage={page.number}
+          totalPages={page.totalPages}
+          totalElements={page.totalElements}
+          pageSize={page.size || 10}
+          onPageChange={fetchAssociados}
+        />
       )}
 
       <AssociadoModal
