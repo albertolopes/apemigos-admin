@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditor, EditorContent, Editor } from '@tiptap/react'; // Importando Editor type
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
@@ -26,7 +26,7 @@ interface TiptapEditorProps {
   onChange: (content: string) => void;
 }
 
-const MenuBar = ({ editor }: { editor: Editor | null }) => { // Tipando corretamente
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) {
     return null;
   }
@@ -211,7 +211,7 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
       }),
     ],
     content: content,
-    onUpdate: ({ editor }: { editor: Editor }) => { // Tipagem explícita aqui
+    onUpdate: ({ editor }: { editor: Editor }) => { // Tipagem explícita adicionada aqui
       onChange(editor.getHTML());
     },
     editorProps: {
