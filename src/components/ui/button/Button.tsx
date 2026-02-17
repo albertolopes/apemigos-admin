@@ -1,15 +1,12 @@
 import React, { ReactNode } from "react";
 
-interface ButtonProps {
-  children: ReactNode; // Button text or content
-  size?: "sm" | "md"; // Button size
-  variant?: "primary" | "outline"; // Button variant
-  startIcon?: ReactNode; // Icon before the text
-  endIcon?: ReactNode; // Icon after the text
-  onClick?: () => void; // Click handler
-  disabled?: boolean; // Disabled state
-  className?: string; // Disabled state
-  type?: "button" | "submit" | "reset"; // Button type
+// Estendendo as props nativas do botão HTML
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: ReactNode;
+  size?: "sm" | "md";
+  variant?: "primary" | "outline";
+  startIcon?: ReactNode;
+  endIcon?: ReactNode;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -18,10 +15,10 @@ const Button: React.FC<ButtonProps> = ({
   variant = "primary",
   startIcon,
   endIcon,
-  onClick,
   className = "",
   disabled = false,
-  type = "button", // Default to "button"
+  type = "button",
+  ...props // Capturando todas as outras props (como title, onClick, etc.)
 }) => {
   // Size Classes
   const sizeClasses = {
@@ -43,8 +40,8 @@ const Button: React.FC<ButtonProps> = ({
       className={`inline-flex items-center justify-center font-medium gap-2 rounded-lg transition ${className} ${sizeClasses[size]
         } ${variantClasses[variant]} ${disabled ? "cursor-not-allowed opacity-50" : ""
         }`}
-      onClick={onClick}
       disabled={disabled}
+      {...props} // Espalhando as props restantes no elemento button
     >
       {startIcon && <span className="flex items-center">{startIcon}</span>}
       {children}

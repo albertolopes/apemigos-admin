@@ -22,10 +22,24 @@ export default function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
     const onDrop = async (acceptedFiles: File[]) => {
         if (acceptedFiles.length === 0) return;
 
+        const file = acceptedFiles[0];
         setIsUploading(true);
         try {
-            const result = await uploadImage(acceptedFiles[0]);
-            onUploadSuccess(result.mappedImage);
+            const result = await uploadImage(file);
+            
+            // Construindo o objeto CloudinaryImage a partir da resposta e do arquivo
+            const image: CloudinaryImage = {
+                success: result.success,
+                url: result.url,
+                publicId: result.public_id,
+                folder: result.folder,
+                message: result.message,
+                fileSize: file.size, // Pegando do arquivo local
+                contentType: file.type, // Pegando do arquivo local
+                // Outros campos opcionais podem ficar undefined
+            };
+
+            onUploadSuccess(image);
             addToast({
                 variant: 'success',
                 title: 'Upload concluído',
@@ -58,7 +72,19 @@ export default function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
         setIsUploading(true);
         try {
             const result = await uploadImageFromUrl(imageUrl);
-            onUploadSuccess(result.mappedImage);
+            
+            // Para URL, não temos o tamanho/tipo imediatamente sem outra chamada,
+            // então passamos o que temos.
+            const image: CloudinaryImage = {
+                success: result.success,
+                url: result.url,
+                publicId: result.public_id,
+                folder: result.folder,
+                message: result.message,
+                // fileSize e contentType ficarão undefined por enquanto
+            };
+
+            onUploadSuccess(image);
             setImageUrl('');
             addToast({
                 variant: 'success',

@@ -8,9 +8,9 @@ import Input from '../form/input/InputField';
 import { Projeto } from '@/lib/types';
 import { uploadImage } from '@/lib/services/imageService';
 import { useToast } from '@/hooks/useToast';
-import 'react-quill-new/dist/quill.snow.css';
 
-const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+// Usando o mesmo editor do NewsForm para consistência
+const TiptapEditor = dynamic(() => import('../ui/editor/TiptapEditor'), { ssr: false });
 
 interface ProjectFormProps {
     onSave: (project: Partial<Projeto>) => Promise<void>;
@@ -62,7 +62,7 @@ export default function ProjectForm({ onSave, onCancel, initialData, isSaving }:
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleQuillChange = (content: string) => {
+    const handleEditorChange = (content: string) => {
         setFormData((prev) => ({ ...prev, description: content }));
     };
 
@@ -151,13 +151,11 @@ export default function ProjectForm({ onSave, onCancel, initialData, isSaving }:
             </div>
 
             <div>
-                <Label>Descrição Completa (Editor de Texto)</Label>
-                <div className="bg-white dark:bg-gray-700 rounded-lg overflow-hidden">
-                    <ReactQuill
-                        theme="snow"
-                        value={formData.description || ''}
-                        onChange={handleQuillChange}
-                        style={{ height: '250px', marginBottom: '50px' }}
+                <Label>Descrição Completa</Label>
+                <div className="mb-4">
+                    <TiptapEditor
+                        content={formData.description || ''}
+                        onChange={handleEditorChange}
                     />
                 </div>
             </div>

@@ -1,11 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Button from '../ui/button/Button';
 import Label from '../form/Label';
 import Input from '../form/input/InputField';
+import FileInput from '../form/input/FileInput';
 import { Noticia } from '@/lib/types';
-import TiptapEditor from '../ui/editor/TiptapEditor'; // Importando o novo editor
+import { uploadImage } from '@/lib/services/imageService';
+
+// Importação dinâmica do TiptapEditor para evitar erros de SSR
+// Renomeei a variável para TiptapEditor para ficar mais claro, embora o dynamic importe o arquivo correto
+const TiptapEditor = dynamic(() => import('../ui/editor/TiptapEditor'), { ssr: false });
 
 interface NewsFormProps {
   onSave: (news: Partial<Noticia> & { longDescription?: string }) => Promise<void>;
@@ -33,6 +39,9 @@ export default function NewsForm({ onSave, onCancel, initialData, isSaving }: Ne
     longDescription: '',
   });
 
+  const [imageMode, setImageMode] = useState<'url' | 'upload'>('url');
+  const [isUploading, setIsUploading] = useState(false);
+
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -53,6 +62,26 @@ export default function NewsForm({ onSave, onCancel, initialData, isSaving }: Ne
 
   const handleEditorChange = (content: string) => {
     setFormData((prev) => ({ ...prev, longDescription: content }));
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const response = await uploadImage(file);
+      if (response.success) {
+        setFormData((prev) => ({ ...prev, image: response.url }));
+      } else {
+        alert('Erro no upload: ' + response.message);
+      }
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      alert('Erro ao fazer upload da imagem.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -117,22 +146,64 @@ export default function NewsForm({ onSave, onCancel, initialData, isSaving }: Ne
       </div>
 
       <div>
-        <Label htmlFor="image">URL da Imagem</Label>
-        <Input
-          type="text"
-          id="image"
-          name="image"
-          value={formData.image || ''}
-          onChange={handleChange}
-          placeholder="https://exemplo.com/imagem.jpg"
-        />
+        <Label>Imagem de Capa</Label>
+        <div className="flex gap-4 mb-2">
+          <button
+            type="button"
+            onClick={() => setImageMode('url')}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              imageMode === 'url'
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium'
+                : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+          >
+            Colar URL
+          </button>
+          <button
+            type="button"
+            onClick={() => setImageMode('upload')}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              imageMode === 'upload'
+                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-medium'
+                : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+          >
+            Fazer Upload
+          </button>
+        </div>
+
+        {imageMode === 'url' ? (
+          <Input
+            type="text"
+            id="image"
+            name="image"
+            value={formData.image || ''}
+            onChange={handleChange}
+            placeholder="https://exemplo.com/imagem.jpg"
+          />
+        ) : (
+          <div className="space-y-2">
+            <FileInput onChange={handleFileUpload} />
+            {isUploading && <p className="text-sm text-blue-500">Enviando imagem...</p>}
+          </div>
+        )}
+
+        {formData.image && (
+          <div className="mt-2 relative w-full h-48 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+            <img
+              src={formData.image}
+              alt="Preview"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
-        <Button variant="outline" onClick={onCancel} type="button" disabled={isSaving}>
+        <Button variant="outline" onClick={onCancel} type="button" disabled={isSaving || isUploading}>
           Cancelar
         </Button>
-        <Button variant="primary" type="submit" disabled={isSaving}>
+        <Button variant="primary" type="submit" disabled={isSaving || isUploading}>
           {isSaving ? 'Salvando...' : 'Salvar'}
         </Button>
       </div>

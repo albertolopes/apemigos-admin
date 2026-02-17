@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react'; // Importando Editor type
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
@@ -26,7 +26,7 @@ interface TiptapEditorProps {
   onChange: (content: string) => void;
 }
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => { // Tipando corretamente
   if (!editor) {
     return null;
   }
@@ -205,10 +205,13 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
       }),
       Youtube.configure({
         controls: false,
+        HTMLAttributes: {
+          class: 'aspect-video w-full',
+        },
       }),
     ],
     content: content,
-    onUpdate: ({ editor }) => {
+    onUpdate: ({ editor }: { editor: Editor }) => { // Tipagem explícita aqui
       onChange(editor.getHTML());
     },
     editorProps: {
@@ -218,7 +221,7 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
       },
     },
     immediatelyRender: false,
-  } as any); // Cast para any no objeto inteiro de configuração
+  } as any);
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {

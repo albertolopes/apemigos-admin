@@ -3,7 +3,6 @@
 import React from 'react';
 import { CloudinaryImage } from '@/lib/types';
 import Button from '../ui/button/Button';
-import ComponentCard from '../common/ComponentCard';
 
 interface ImageGalleryProps {
     images: CloudinaryImage[];
@@ -39,7 +38,7 @@ export default function ImageGallery({ images, onDelete }: ImageGalleryProps) {
                     <div className="p-4">
                         <div className="flex flex-col gap-1 mb-3">
                             <span className="text-xs font-medium text-gray-400 uppercase truncate">
-                                {image.format} • {Math.round(image.bytes / 1024)} KB
+                                {image.contentType || 'N/A'} • {image.fileSize ? Math.round(image.fileSize / 1024) : 0} KB
                             </span>
                             <span className="text-sm font-semibold text-gray-800 dark:text-white truncate" title={image.publicId}>
                                 {image.publicId}

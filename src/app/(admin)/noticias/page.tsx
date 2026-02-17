@@ -14,8 +14,9 @@ import NewsForm from '@/components/news/NewsForm';
 import NewsContent from '@/components/news/NewsContent';
 import Button from '@/components/ui/button/Button';
 import { Modal } from '@/components/ui/modal';
-import ConfirmationDialog from '@/components/ui/modal/ConfirmationDialog'; // Importando o diálogo
+import ConfirmationDialog from '@/components/ui/modal/ConfirmationDialog';
 import api from '@/lib/services/api';
+import { useToast } from '@/hooks/useToast'; // Importação corrigida
 
 export default function NewsPage() {
   const [news, setNews] = useState<Noticia[]>([]);
@@ -36,6 +37,8 @@ export default function NewsPage() {
   const [newsToDelete, setNewsToDelete] = useState<number | null>(null);
   const [statusToUpdate, setStatusToUpdate] = useState<{ id: number, status: NoticiaStatus } | null>(null);
 
+  const { addToast } = useToast();
+
   const fetchNews = async (pageNumber = 0) => {
     try {
       const response = await getNews(pageNumber);
@@ -43,6 +46,11 @@ export default function NewsPage() {
       setNews(response.content);
     } catch (error) {
       console.error('Erro ao buscar notícias:', error);
+      addToast({
+        variant: 'error',
+        title: 'Erro',
+        message: 'Não foi possível carregar as notícias.',
+      });
     }
   };
 
@@ -56,6 +64,11 @@ export default function NewsPage() {
       return response.data.longDescription;
     } catch (error) {
       console.error('Erro ao buscar conteúdo da notícia:', error);
+      addToast({
+        variant: 'error',
+        title: 'Erro',
+        message: 'Não foi possível carregar o conteúdo da notícia.',
+      });
       return '';
     }
   };
@@ -88,9 +101,18 @@ export default function NewsPage() {
       try {
         await deleteNews(newsToDelete);
         fetchNews();
+        addToast({
+          variant: 'success',
+          title: 'Sucesso',
+          message: 'Notícia excluída com sucesso!',
+        });
       } catch (error) {
         console.error('Erro ao excluir notícia:', error);
-        alert('Erro ao excluir notícia.');
+        addToast({
+          variant: 'error',
+          title: 'Erro',
+          message: 'Não foi possível excluir a notícia.',
+        });
       } finally {
         setIsDeleteConfirmOpen(false);
         setNewsToDelete(null);
@@ -109,9 +131,18 @@ export default function NewsPage() {
       try {
         await updateNewsStatus(statusToUpdate.id, statusToUpdate.status);
         fetchNews();
+        addToast({
+          variant: 'success',
+          title: 'Sucesso',
+          message: `Notícia ${statusToUpdate.status === 'APROVADO' ? 'aprovada' : 'tornada pendente'} com sucesso!`,
+        });
       } catch (error) {
         console.error('Erro ao atualizar status da notícia:', error);
-        alert('Erro ao atualizar status.');
+        addToast({
+          variant: 'error',
+          title: 'Erro',
+          message: 'Não foi possível atualizar o status da notícia.',
+        });
       } finally {
         setIsStatusConfirmOpen(false);
         setStatusToUpdate(null);
@@ -126,17 +157,31 @@ export default function NewsPage() {
     try {
       if (newsData.id) {
         await updateNews(newsData.id, newsData);
+        addToast({
+          variant: 'success',
+          title: 'Sucesso',
+          message: 'Notícia atualizada com sucesso!',
+        });
       } else {
         await createNewsWithContent({
           ...newsData,
           longDescription: newsData.longDescription || '',
+        });
+        addToast({
+          variant: 'success',
+          title: 'Sucesso',
+          message: 'Notícia criada com sucesso!',
         });
       }
       await fetchNews();
       setIsModalOpen(false);
     } catch (error) {
       console.error('Erro ao salvar notícia:', error);
-      alert('Erro ao salvar notícia. Verifique o console.');
+      addToast({
+        variant: 'error',
+        title: 'Erro',
+        message: 'Não foi possível salvar a notícia.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -158,7 +203,7 @@ export default function NewsPage() {
         onEdit={handleEditClick}
         onDelete={handleDeleteClick}
         onPreview={handlePreviewClick}
-        onStatusChange={handleStatusChangeClick} // Usando a nova função que abre o modal
+        onStatusChange={handleStatusChangeClick}
       />
 
       {/* Modal de Formulário */}
