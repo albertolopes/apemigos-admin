@@ -1,5 +1,5 @@
 import api from './api';
-import type { Page, AssociadoResponseDTO, StatusCarteirinha } from '../types';
+import type { Page, AssociadoResponseDTO, StatusCarteirinha, AssociadoFile } from '../types';
 
 export const getAssociados = async (
   page = 0,
@@ -19,7 +19,6 @@ export const updateAssociadoStatus = async (
   id: number,
   status: StatusCarteirinha
 ): Promise<AssociadoResponseDTO> => {
-  // O endpoint espera o enum no corpo. Enviamos como string JSON.
   const response = await api.patch(`/associados/${id}/status`, JSON.stringify(status), {
     headers: {
       'Content-Type': 'application/json',
@@ -28,5 +27,7 @@ export const updateAssociadoStatus = async (
   return response.data;
 };
 
-// Função para criar associado (Multipart) - caso necessário no futuro
-// export const createAssociado = async (formData: FormData) => { ... }
+export const getAssociadoFiles = async (id: number): Promise<AssociadoFile[]> => {
+  const response = await api.get(`/associados/${id}/files`);
+  return response.data;
+};

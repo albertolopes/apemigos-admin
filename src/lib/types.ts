@@ -36,8 +36,8 @@ export interface Projeto {
   cover: string;
   slug: string;
   description?: string;
-  createdAt?: string; // Adicionado createdAt
-  updatedAt?: string; // Adicionado updatedAt por precaução
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Usuario {
@@ -99,6 +99,21 @@ export interface AssociadoRequisicaoDTO {
   laudo?: File;
   foto3x4?: File;
   documento?: File;
+}
+
+export interface AssociadoFile {
+  id: number;
+  associadoId: number;
+  fieldName: string | null;
+  originalName: string | null;
+  contentType: string | null;
+  size: number | null;
+  cloudPublicId: string;
+  cloudUrl: string;
+  cloudFolder: string; // Nome do arquivo original parece estar aqui no seu exemplo
+  cloudSuccess: boolean | null;
+  cloudMessage: string | null;
+  createdAt: string | null;
 }
 
 // --- Novo Tipo para Imagens (Cloudinary) ---
