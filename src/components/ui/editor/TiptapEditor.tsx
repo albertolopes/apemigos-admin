@@ -211,12 +211,13 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
       }),
     ],
     content: content,
-    onUpdate: ({ editor }: { editor: Editor }) => { // Tipagem explícita adicionada aqui
+    onUpdate: ({ editor }: { editor: Editor }) => {
       onChange(editor.getHTML());
     },
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert max-w-none focus:outline-none p-4 min-h-[400px] text-gray-900 dark:text-white break-words hyphens-auto text-justify',
+        // Removi min-h-[400px] daqui e coloquei no container pai para controlar melhor o scroll
+        class: 'prose dark:prose-invert max-w-none focus:outline-none p-4 text-gray-900 dark:text-white break-words hyphens-auto text-justify',
         lang: 'pt-BR',
       },
     },
@@ -232,10 +233,11 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
   }, [content, editor]);
 
   return (
+    // Adicionei max-h-[500px] e overflow-y-auto aqui para garantir a barra de rolagem
     <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800 flex flex-col h-[500px]">
       <MenuBar editor={editor} />
       <div className="flex-1 overflow-y-auto">
-        <EditorContent editor={editor} />
+        <EditorContent editor={editor} className="h-full" />
       </div>
     </div>
   );

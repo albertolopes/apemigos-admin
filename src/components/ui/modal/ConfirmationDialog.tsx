@@ -12,7 +12,7 @@ interface ConfirmationDialogProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  variant?: 'primary' | 'danger' | 'warning'; // Para estilizar o botão de confirmação
+  variant?: 'primary' | 'danger' | 'warning';
 }
 
 export default function ConfirmationDialog({
@@ -26,15 +26,14 @@ export default function ConfirmationDialog({
   variant = 'primary',
 }: ConfirmationDialogProps) {
   
-  // Mapeia a variante para a classe de cor do botão (assumindo que Button aceita className ou variant)
-  // Se o componente Button não suportar 'danger' ou 'warning' nativamente, podemos passar classes.
-  // Vou assumir que 'variant' do Button suporta 'primary' e 'outline', e usarei className para cores.
-  
   let confirmButtonClass = '';
+  
+  // Usando !important para garantir que sobrescreva as cores padrão do botão
   if (variant === 'danger') {
-    confirmButtonClass = 'bg-error-600 hover:bg-error-700 text-white border-error-600';
+    confirmButtonClass = '!bg-error-600 hover:!bg-error-700 !text-white !border-error-600';
   } else if (variant === 'warning') {
-    confirmButtonClass = 'bg-warning-500 hover:bg-warning-600 text-white border-warning-500';
+    // Ajustado para garantir contraste: fundo amarelo/laranja escuro com texto branco
+    confirmButtonClass = '!bg-yellow-500 hover:!bg-yellow-600 !text-white !border-yellow-500';
   }
 
   return (
@@ -53,7 +52,9 @@ export default function ConfirmationDialog({
         <Button 
           onClick={onConfirm} 
           className={`w-full sm:w-auto ${confirmButtonClass}`}
-          variant={variant === 'primary' ? 'primary' : 'outline'} // Fallback seguro
+          // Usar 'primary' como base garante que a estrutura seja de um botão sólido (com background)
+          // As classes acima irão apenas trocar a cor desse background.
+          variant="primary"
         >
           {confirmText}
         </Button>

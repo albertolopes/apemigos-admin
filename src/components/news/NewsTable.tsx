@@ -12,7 +12,7 @@ import Button from '../ui/button/Button';
 import Badge from '../ui/badge/Badge';
 import { Noticia, NoticiaStatus } from '@/lib/types';
 import { EyeIcon, CheckLineIcon, CloseLineIcon } from '@/icons';
-import TableLoading from '../ui/table/TableLoading'; // Importando loading
+import TableLoading from '../ui/table/TableLoading';
 
 interface NewsTableProps {
   news: Noticia[];
@@ -20,7 +20,7 @@ interface NewsTableProps {
   onDelete: (id: number) => void;
   onPreview: (news: Noticia) => void;
   onStatusChange: (id: number, status: NoticiaStatus) => void;
-  isLoading?: boolean; // Nova prop
+  isLoading?: boolean;
 }
 
 export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusChange, isLoading }: NewsTableProps) {
@@ -99,7 +99,8 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusC
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="text-warning-500 hover:bg-warning-50"
+                            // Usando !text-yellow-600 para forçar a cor e garantir legibilidade
+                            className="!text-yellow-600 hover:!text-yellow-700 border-yellow-200 hover:bg-yellow-50 dark:!text-yellow-500 dark:border-yellow-500/30 dark:hover:bg-yellow-500/10"
                             onClick={() => onStatusChange(item.id, 'PENDENTE')}
                             title="Tornar Pendente"
                           >
@@ -109,7 +110,8 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusC
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="text-success-500 hover:bg-success-50"
+                            // Usando !text-green-600 para forçar a cor
+                            className="!text-green-600 hover:!text-green-700 border-green-200 hover:bg-green-50 dark:!text-green-500 dark:border-green-500/30 dark:hover:bg-green-500/10"
                             onClick={() => onStatusChange(item.id, 'APROVADO')}
                             title="Aprovar"
                           >
@@ -120,7 +122,7 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusC
                         <Button size="sm" variant="outline" onClick={() => onEdit(item)}>
                           Editar
                         </Button>
-                        <Button size="sm" variant="outline" className="text-error-500 hover:bg-error-50" onClick={() => onDelete(item.id)}>
+                        <Button size="sm" variant="outline" className="text-error-500 hover:bg-error-50 border-error-200 hover:border-error-300" onClick={() => onDelete(item.id)}>
                           Excluir
                         </Button>
                       </div>
