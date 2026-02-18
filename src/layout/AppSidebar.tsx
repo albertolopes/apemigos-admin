@@ -252,7 +252,7 @@ const AppSidebar: React.FC = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex  ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+        className={`py-8 flex hidden lg:flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
           }`}
       >
         <Link href="/">
@@ -262,15 +262,15 @@ const AppSidebar: React.FC = () => {
                 className="dark:hidden"
                 src="/images/logo/logo.png"
                 alt="Logo"
-                width={100} // Reduzido para 100
-                height={26} // Reduzido para 26
+                width={100}
+                height={26}
               />
               <Image
                 className="hidden dark:block"
                 src="/images/logo/logo.png"
                 alt="Logo"
-                width={100} // Reduzido para 100
-                height={26} // Reduzido para 26
+                width={100}
+                height={26}
               />
             </>
           ) : (
