@@ -37,8 +37,9 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Verifica se o erro é 401 OU 403
     if (
-      error.response?.status === 401 &&
+      (error.response?.status === 401 || error.response?.status === 403) &&
       !originalRequest._retry &&
       !originalRequest.url.includes('/auth/login') &&
       !originalRequest.url.includes('/auth/refresh')
@@ -62,9 +63,13 @@ api.interceptors.response.use(
       try {
         const currentToken = localStorage.getItem('authToken');
         
-        const response = await axios.post(
-          `${api.defaults.baseURL}/auth/refresh`,
-          {},
+        const refreshApi = axios.create({
+            baseURL: api.defaults.baseURL,
+        });
+
+        const response = await refreshApi.post(
+          '/auth/refresh',
+          {}, 
           {
             headers: {
               Authorization: `Bearer ${currentToken}`,
@@ -74,6 +79,7 @@ api.interceptors.response.use(
 
         if (response.data && response.data.token) {
           const newToken = response.data.token;
+          
           localStorage.setItem('authToken', newToken);
           
           api.defaults.headers.common['Authorization'] = 'Bearer ' + newToken;
@@ -82,6 +88,8 @@ api.interceptors.response.use(
           
           originalRequest.headers['Authorization'] = 'Bearer ' + newToken;
           return api(originalRequest);
+        } else {
+            throw new Error('Token não retornado no refresh');
         }
       } catch (refreshError) {
         processQueue(refreshError, null);
