@@ -4,11 +4,15 @@ import type { Page, AssociadoResponseDTO, StatusCarteirinha, AssociadoFile } fro
 export const getAssociados = async (
   page = 0,
   size = 10,
-  keyword?: string
+  keyword?: string,
+  status?: StatusCarteirinha | '' // Adicionado parâmetro status
 ): Promise<Page<AssociadoResponseDTO>> => {
   const params: any = { page, size };
   if (keyword) {
     params.keyword = keyword;
+  }
+  if (status) {
+    params.status = status;
   }
 
   const response = await api.get('/associados', { params });
