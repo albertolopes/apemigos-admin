@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Youtube from '@tiptap/extension-youtube';
-import { Node } from '@tiptap/core'; // Import Node
+import { Node } from '@tiptap/core';
 
 import {
   Bold,
@@ -20,7 +20,7 @@ import {
   Youtube as YoutubeIcon,
   Heading1,
   Heading2,
-  Video as VideoIcon, // Import Video icon for generic videos
+  Video as VideoIcon,
 } from 'lucide-react';
 import React, { useEffect } from 'react';
 
@@ -29,11 +29,11 @@ interface TiptapEditorProps {
   onChange: (content: string) => void;
 }
 
-// Custom Video Extension for generic MP4/WebM/Ogg videos
+// Custom Video Extension
 const Video = Node.create({
   name: 'video',
   group: 'block',
-  atom: true, // Treat the whole video as a single unit
+  atom: true,
 
   addAttributes() {
     return {
@@ -42,24 +42,9 @@ const Video = Node.create({
       },
       controls: {
         default: true,
-        parseHTML: (element) => element.hasAttribute('controls'),
-      },
-      loop: {
-        default: false,
-        parseHTML: (element) => element.hasAttribute('loop'),
-      },
-      autoplay: {
-        default: false,
-        parseHTML: (element) => element.hasAttribute('autoplay'),
-      },
-      width: {
-        default: '100%',
-      },
-      height: {
-        default: 'auto',
       },
       class: {
-        default: 'aspect-video w-full', // Add a default class for styling
+        default: 'aspect-video w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700',
       }
     };
   },
@@ -74,19 +59,6 @@ const Video = Node.create({
 
   renderHTML({ HTMLAttributes }) {
     return ['video', HTMLAttributes];
-  },
-
-  addCommands() {
-    return {
-      setVideo:
-        (options) =>
-        ({ commands }) => {
-          return commands.insertContent({
-            type: this.name,
-            attrs: options,
-          });
-        },
-    };
   },
 });
 
@@ -109,11 +81,14 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     }
   };
 
-  // New function to add generic video
   const addVideo = () => {
     const url = window.prompt('URL do vídeo (MP4, WebM, Ogg):');
     if (url) {
-      editor.chain().focus().setVideo({ src: url }).run();
+      // Usando insertContent para evitar erro de comando não definido na tipagem
+      editor.chain().focus().insertContent({
+        type: 'video',
+        attrs: { src: url }
+      }).run();
     }
   };
 
@@ -242,7 +217,6 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       >
         <YoutubeIcon size={18} />
       </button>
-      {/* New button for generic video */}
       <button
         onClick={addVideo}
         className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
@@ -290,7 +264,7 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
           class: 'aspect-video w-full',
         },
       }),
-      Video, // Add the custom Video extension here
+      Video,
     ],
     content: content,
     onUpdate: ({ editor }: { editor: Editor }) => {
@@ -298,7 +272,6 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
     },
     editorProps: {
       attributes: {
-        // Removi min-h-[400px] daqui e coloquei no container pai para controlar melhor o scroll
         class: 'prose dark:prose-invert max-w-none focus:outline-none p-4 text-gray-900 dark:text-white break-words hyphens-auto text-justify',
         lang: 'pt-BR',
       },
@@ -308,16 +281,13 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      // Only set content if the editor is empty or the content has significantly changed
-      // This prevents cursor jumping issues when content is updated externally
-      if (editor.isEmpty && content || editor.getHTML() !== content) {
-          editor.commands.setContent(content, false); // false to not emit update event
+      if ((editor.isEmpty && content) || (content !== '' && editor.getHTML() === '<p></p>')) {
+        editor.commands.setContent(content, { emitUpdate: false });
       }
     }
   }, [content, editor]);
 
   return (
-    // Adicionei max-h-[500px] e overflow-y-auto aqui para garantir a barra de rolagem
     <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800 flex flex-col h-[500px]">
       <MenuBar editor={editor} />
       <div className="flex-1 overflow-y-auto">
