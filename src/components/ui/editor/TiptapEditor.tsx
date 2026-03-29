@@ -5,6 +5,8 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Youtube from '@tiptap/extension-youtube';
+import { Node } from '@tiptap/core'; // Import Node
+
 import {
   Bold,
   Italic,
@@ -18,6 +20,7 @@ import {
   Youtube as YoutubeIcon,
   Heading1,
   Heading2,
+  Video as VideoIcon, // Import Video icon for generic videos
 } from 'lucide-react';
 import React, { useEffect } from 'react';
 
@@ -25,6 +28,67 @@ interface TiptapEditorProps {
   content: string;
   onChange: (content: string) => void;
 }
+
+// Custom Video Extension for generic MP4/WebM/Ogg videos
+const Video = Node.create({
+  name: 'video',
+  group: 'block',
+  atom: true, // Treat the whole video as a single unit
+
+  addAttributes() {
+    return {
+      src: {
+        default: null,
+      },
+      controls: {
+        default: true,
+        parseHTML: (element) => element.hasAttribute('controls'),
+      },
+      loop: {
+        default: false,
+        parseHTML: (element) => element.hasAttribute('loop'),
+      },
+      autoplay: {
+        default: false,
+        parseHTML: (element) => element.hasAttribute('autoplay'),
+      },
+      width: {
+        default: '100%',
+      },
+      height: {
+        default: 'auto',
+      },
+      class: {
+        default: 'aspect-video w-full', // Add a default class for styling
+      }
+    };
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'video',
+      },
+    ];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['video', HTMLAttributes];
+  },
+
+  addCommands() {
+    return {
+      setVideo:
+        (options) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: options,
+          });
+        },
+    };
+  },
+});
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) {
@@ -42,6 +106,14 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     const url = window.prompt('URL do vídeo do YouTube:');
     if (url) {
       editor.chain().focus().setYoutubeVideo({ src: url }).run();
+    }
+  };
+
+  // New function to add generic video
+  const addVideo = () => {
+    const url = window.prompt('URL do vídeo (MP4, WebM, Ogg):');
+    if (url) {
+      editor.chain().focus().setVideo({ src: url }).run();
     }
   };
 
@@ -170,6 +242,15 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       >
         <YoutubeIcon size={18} />
       </button>
+      {/* New button for generic video */}
+      <button
+        onClick={addVideo}
+        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
+        type="button"
+        title="Vídeo (MP4, WebM, Ogg)"
+      >
+        <VideoIcon size={18} />
+      </button>
 
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1 self-center" />
 
@@ -209,6 +290,7 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
           class: 'aspect-video w-full',
         },
       }),
+      Video, // Add the custom Video extension here
     ],
     content: content,
     onUpdate: ({ editor }: { editor: Editor }) => {
@@ -226,8 +308,10 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      if (editor.isEmpty && content) {
-          editor.commands.setContent(content);
+      // Only set content if the editor is empty or the content has significantly changed
+      // This prevents cursor jumping issues when content is updated externally
+      if (editor.isEmpty && content || editor.getHTML() !== content) {
+          editor.commands.setContent(content, false); // false to not emit update event
       }
     }
   }, [content, editor]);
