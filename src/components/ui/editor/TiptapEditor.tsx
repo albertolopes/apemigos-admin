@@ -257,7 +257,7 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
     if (editor && content !== editor.getHTML()) {
       // Se for o primeiro carregamento com conteúdo ou o editor estiver realmente vazio
       if (!isMounted.current || (editor.isEmpty && content !== '')) {
-        editor.commands.setContent(content, false);
+        editor.commands.setContent(content, { emitUpdate: false });
         isMounted.current = true;
       }
     }
