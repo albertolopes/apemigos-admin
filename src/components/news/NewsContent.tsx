@@ -16,7 +16,7 @@ export default function NewsContent({ html }: NewsContentProps) {
         // break-words: Quebra palavras longas se necessário
         // hyphens-auto: Hifenização (divisão silábica)
         // text-justify: Justifica o texto
-        className="text-slate-600 py-6 w-full max-w-3xl mx-auto text-sm whitespace-normal break-words hyphens-auto text-justify prose dark:prose-invert"
+        className="rich-text-content text-slate-600 py-6 w-full max-w-3xl mx-auto text-sm whitespace-normal break-words hyphens-auto text-justify"
         lang="pt-BR"
         dangerouslySetInnerHTML={{ __html: html }}
       />

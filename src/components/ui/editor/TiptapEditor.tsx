@@ -291,7 +291,7 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
     },
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert max-w-none focus:outline-none p-4 text-gray-900 dark:text-white break-words text-justify min-h-[400px]',
+        class: 'rich-text-content max-w-none focus:outline-none p-4 text-gray-900 dark:text-white break-words text-justify min-h-[400px]',
         lang: 'pt-BR',
       },
       handlePaste(view, event) {
