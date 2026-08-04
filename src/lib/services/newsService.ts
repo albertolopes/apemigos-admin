@@ -57,6 +57,11 @@ export const getNews = async (
   return response.data;
 };
 
+export const getNewsTotalViews = async (id: number): Promise<number> => {
+  const response = await api.get(`/noticias/conteudo/${id}/total-buscas`);
+  return response.data;
+};
+
 export const updateNews = async (
   id: number,
   news: Partial<Noticia>

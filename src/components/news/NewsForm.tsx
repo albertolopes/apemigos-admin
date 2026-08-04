@@ -19,47 +19,49 @@ interface NewsFormProps {
   isSaving: boolean;
 }
 
-const generateSlug = (title: string): string => {
-  if (!title) return '';
-  return title
+const emptyFormData: Partial<Noticia> & { longDescription?: string } = {
+  title: '',
+  shortDescription: '',
+  image: '',
+  slug: '',
+  longDescription: '',
+};
+
+const normalizeSlug = (slug: string): string => {
+  if (!slug) return '';
+  return slug
     .toLowerCase()
-    .trim()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, '-')
-    .replace(/[^\w-]+/g, '')
-    .replace(/--+/g, '-');
+    .replace(/[^a-z0-9-]+/g, '')
+    .replace(/-+/g, '-');
 };
 
 export default function NewsForm({ onSave, onCancel, initialData, isSaving }: NewsFormProps) {
-  const [formData, setFormData] = useState<Partial<Noticia> & { longDescription?: string }>({
-    title: '',
-    shortDescription: '',
-    image: '',
-    slug: '',
-    longDescription: '',
-  });
+  const [formData, setFormData] = useState<Partial<Noticia> & { longDescription?: string }>(emptyFormData);
 
   const [imageMode, setImageMode] = useState<'url' | 'upload'>('url');
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        slug: normalizeSlug(initialData.slug || ''),
+      });
       // Se já tem imagem, assume modo URL por padrão, mas permite mudar
+    } else {
+      setFormData(emptyFormData);
     }
   }, [initialData]);
 
-  useEffect(() => {
-    if (formData.title && !initialData?.id) {
-      const newSlug = generateSlug(formData.title);
-      setFormData((prev) => ({ ...prev, slug: newSlug }));
-    }
-  }, [formData.title, initialData?.id]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'slug' ? normalizeSlug(value) : value,
+    }));
   };
 
   const handleEditorChange = (content: string) => {
@@ -88,7 +90,10 @@ export default function NewsForm({ onSave, onCancel, initialData, isSaving }: Ne
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSave(formData);
+    await onSave({
+      ...formData,
+      slug: normalizeSlug(formData.slug || '').replace(/^-+|-+$/g, ''),
+    });
   };
 
   return (
@@ -120,15 +125,17 @@ export default function NewsForm({ onSave, onCancel, initialData, isSaving }: Ne
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="slug">Slug (URL)</Label>
+            <Label htmlFor="slug">Slug (URL) <span className="text-red-500">*</span></Label>
             <Input
               type="text"
               id="slug"
               name="slug"
               value={formData.slug || ''}
-              disabled
-              placeholder="Gerado automaticamente"
-              className="bg-gray-50 dark:bg-gray-900 cursor-not-allowed w-full opacity-70"
+              onChange={handleChange}
+              required
+              placeholder="exemplo-de-slug"
+              hint="Espaços são convertidos automaticamente em hífens."
+              className="w-full"
             />
           </div>
         </div>

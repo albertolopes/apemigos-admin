@@ -47,13 +47,16 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusC
                   Criado em
                 </TableCell>
                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400">
+                  Visualizações
+                </TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-end text-theme-xs dark:text-gray-400">
                   Ações
                 </TableCell>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
               {isLoading ? (
-                <TableLoading columns={6} />
+                <TableLoading columns={7} />
               ) : news.length > 0 ? (
                 news.map((item) => (
                   <TableRow key={item.id}>
@@ -88,6 +91,11 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusC
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-gray-500 text-end text-theme-sm dark:text-gray-400">
+                      {typeof item.totalViews === 'number'
+                        ? item.totalViews.toLocaleString('pt-BR')
+                        : 'N/A'}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-gray-500 text-end text-theme-sm dark:text-gray-400">
                       <div className="flex gap-2 justify-end">
@@ -131,7 +139,7 @@ export default function NewsTable({ news, onEdit, onDelete, onPreview, onStatusC
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="px-5 py-8 text-center text-gray-500 dark:text-gray-400">
+                  <TableCell colSpan={7} className="px-5 py-8 text-center text-gray-500 dark:text-gray-400">
                     Nenhuma notícia encontrada.
                   </TableCell>
                 </TableRow>

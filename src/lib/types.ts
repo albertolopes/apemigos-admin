@@ -19,6 +19,7 @@ export interface Noticia {
   shortDescription: string;
   slug: string;
   status: NoticiaStatus;
+  totalViews?: number;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -20,16 +20,19 @@ import {
   Youtube as YoutubeIcon,
   Heading1,
   Heading2,
+  Heading3,
   Video as VideoIcon,
+  Minus,
+  Eraser,
 } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface TiptapEditorProps {
   content: string;
   onChange: (content: string) => void;
 }
 
-// Custom Video Extension
+// Custom Video Extension para manter o HTML limpo e organizado
 const Video = Node.create({
   name: 'video',
   group: 'block',
@@ -37,24 +40,14 @@ const Video = Node.create({
 
   addAttributes() {
     return {
-      src: {
-        default: null,
-      },
-      controls: {
-        default: true,
-      },
-      class: {
-        default: 'aspect-video w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700',
-      }
+      src: { default: null },
+      controls: { default: true },
+      class: { default: 'aspect-video w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 my-4' }
     };
   },
 
   parseHTML() {
-    return [
-      {
-        tag: 'video',
-      },
-    ];
+    return [{ tag: 'video' }];
   },
 
   renderHTML({ HTMLAttributes }) {
@@ -63,28 +56,21 @@ const Video = Node.create({
 });
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
-  if (!editor) {
-    return null;
-  }
+  if (!editor) return null;
 
   const addImage = () => {
     const url = window.prompt('URL da imagem:');
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
-    }
+    if (url) editor.chain().focus().setImage({ src: url }).run();
   };
 
   const addYoutube = () => {
     const url = window.prompt('URL do vídeo do YouTube:');
-    if (url) {
-      editor.chain().focus().setYoutubeVideo({ src: url }).run();
-    }
+    if (url) editor.chain().focus().setYoutubeVideo({ src: url }).run();
   };
 
   const addVideo = () => {
     const url = window.prompt('URL do vídeo (MP4, WebM, Ogg):');
     if (url) {
-      // Usando insertContent para evitar erro de comando não definido na tipagem
       editor.chain().focus().insertContent({
         type: 'video',
         attrs: { src: url }
@@ -95,133 +81,115 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
   const setLink = () => {
     const previousUrl = editor.getAttributes('link').href;
     const url = window.prompt('URL:', previousUrl);
-
-    if (url === null) {
-      return;
-    }
-
+    if (url === null) return;
     if (url === '') {
       editor.chain().focus().extendMarkRange('link').unsetLink().run();
       return;
     }
-
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   };
 
   return (
-    <div className="flex flex-wrap gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-t-lg sticky top-0 z-10">
+    <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-t-lg sticky top-0 z-10">
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
         disabled={!editor.can().chain().focus().toggleBold().run()}
-        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
-          editor.isActive('bold') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
-        }`}
-        type="button"
-        title="Negrito"
+        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${editor.isActive('bold') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+        type="button" title="Negrito"
       >
         <Bold size={18} />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleItalic().run()}
         disabled={!editor.can().chain().focus().toggleItalic().run()}
-        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
-          editor.isActive('italic') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
-        }`}
-        type="button"
-        title="Itálico"
+        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${editor.isActive('italic') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+        type="button" title="Itálico"
       >
         <Italic size={18} />
       </button>
-      
+
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1 self-center" />
 
       <button
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
-          editor.isActive('heading', { level: 2 }) ? 'bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
-        }`}
-        type="button"
-        title="Título 2"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${editor.isActive('heading', { level: 1 }) ? 'bg-gray-200 dark:bg-gray-700 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+        type="button" title="H1"
       >
         <Heading1 size={18} />
       </button>
       <button
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
-          editor.isActive('heading', { level: 3 }) ? 'bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
-        }`}
-        type="button"
-        title="Título 3"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-gray-200 dark:bg-gray-700 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+        type="button" title="H2"
       >
         <Heading2 size={18} />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${editor.isActive('heading', { level: 3 }) ? 'bg-gray-200 dark:bg-gray-700 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+        type="button" title="H3"
+      >
+        <Heading3 size={18} />
       </button>
 
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1 self-center" />
 
       <button
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
-          editor.isActive('bulletList') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
-        }`}
-        type="button"
-        title="Lista com marcadores"
+        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${editor.isActive('bulletList') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+        type="button" title="Lista"
       >
         <List size={18} />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
-          editor.isActive('orderedList') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
-        }`}
-        type="button"
-        title="Lista numerada"
+        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${editor.isActive('orderedList') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+        type="button" title="Lista Numerada"
       >
         <ListOrdered size={18} />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
-          editor.isActive('blockquote') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
-        }`}
-        type="button"
-        title="Citação"
+        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${editor.isActive('blockquote') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+        type="button" title="Citação"
       >
         <Quote size={18} />
+      </button>
+      <button
+        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
+        type="button" title="Divisória"
+      >
+        <Minus size={18} />
       </button>
 
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1 self-center" />
 
       <button
         onClick={setLink}
-        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
-          editor.isActive('link') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
-        }`}
-        type="button"
-        title="Link"
+        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${editor.isActive('link') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+        type="button" title="Link"
       >
         <LinkIcon size={18} />
       </button>
       <button
         onClick={addImage}
         className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
-        type="button"
-        title="Imagem"
+        type="button" title="Imagem"
       >
         <ImageIcon size={18} />
       </button>
       <button
         onClick={addYoutube}
         className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
-        type="button"
-        title="YouTube"
+        type="button" title="YouTube"
       >
         <YoutubeIcon size={18} />
       </button>
       <button
         onClick={addVideo}
         className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
-        type="button"
-        title="Vídeo (MP4, WebM, Ogg)"
+        type="button" title="Vídeo MP4"
       >
         <VideoIcon size={18} />
       </button>
@@ -229,20 +197,25 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1 self-center" />
 
       <button
+        onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
+        type="button" title="Limpar Formatação"
+      >
+        <Eraser size={18} />
+      </button>
+      <button
         onClick={() => editor.chain().focus().undo().run()}
         disabled={!editor.can().chain().focus().undo().run()}
-        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-50 transition-colors"
-        type="button"
-        title="Desfazer"
+        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-50"
+        type="button" title="Desfazer"
       >
         <Undo size={18} />
       </button>
       <button
         onClick={() => editor.chain().focus().redo().run()}
         disabled={!editor.can().chain().focus().redo().run()}
-        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-50 transition-colors"
-        type="button"
-        title="Refazer"
+        className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-50"
+        type="button" title="Refazer"
       >
         <Redo size={18} />
       </button>
@@ -251,46 +224,49 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 };
 
 const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
+  const isMounted = useRef(false);
+
   const editor = useEditor({
     extensions: [
-      StarterKit,
-      Image,
-      Link.configure({
-        openOnClick: false,
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+        horizontalRule: {},
       }),
+      Image,
+      Link.configure({ openOnClick: false }),
       Youtube.configure({
         controls: false,
-        HTMLAttributes: {
-          class: 'aspect-video w-full',
-        },
+        HTMLAttributes: { class: 'aspect-video w-full my-4' },
       }),
       Video,
     ],
     content: content,
-    onUpdate: ({ editor }: { editor: Editor }) => {
+    onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert max-w-none focus:outline-none p-4 text-gray-900 dark:text-white break-words hyphens-auto text-justify',
+        class: 'prose dark:prose-invert max-w-none focus:outline-none p-4 text-gray-900 dark:text-white break-words text-justify min-h-[400px]',
         lang: 'pt-BR',
       },
     },
     immediatelyRender: false,
-  } as any);
+  });
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      if ((editor.isEmpty && content) || (content !== '' && editor.getHTML() === '<p></p>')) {
-        editor.commands.setContent(content, { emitUpdate: false });
+      // Se for o primeiro carregamento com conteúdo ou o editor estiver realmente vazio
+      if (!isMounted.current || (editor.isEmpty && content !== '')) {
+        editor.commands.setContent(content, false);
+        isMounted.current = true;
       }
     }
   }, [content, editor]);
 
   return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800 flex flex-col h-[500px]">
+    <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800 flex flex-col min-h-[500px]">
       <MenuBar editor={editor} />
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900/50">
         <EditorContent editor={editor} className="h-full" />
       </div>
     </div>

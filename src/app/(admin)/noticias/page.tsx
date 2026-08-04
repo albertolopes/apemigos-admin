@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   getNews,
+  getNewsTotalViews,
   deleteNews,
   createNewsWithContent,
   updateNews,
@@ -47,8 +48,19 @@ export default function NewsPage() {
     setIsLoading(true);
     try {
       const response = await getNews(pageNumber);
+      const newsWithTotalViews = await Promise.all(
+        response.content.map(async (item) => {
+          try {
+            const totalViews = await getNewsTotalViews(item.id);
+            return { ...item, totalViews };
+          } catch (error) {
+            console.error(`Erro ao buscar visualizações da notícia ${item.id}:`, error);
+            return item;
+          }
+        })
+      );
       setPage(response);
-      setNews(response.content);
+      setNews(newsWithTotalViews);
     } catch (error) {
       console.error('Erro ao buscar notícias:', error);
       addToast({
