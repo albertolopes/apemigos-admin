@@ -18,6 +18,7 @@ import {
   Link as LinkIcon,
   Image as ImageIcon,
   Youtube as YoutubeIcon,
+  Code2,
   Heading1,
   Heading2,
   Heading3,
@@ -31,6 +32,32 @@ interface TiptapEditorProps {
   content: string;
   onChange: (content: string) => void;
 }
+
+const getFencedCode = (text: string) => {
+  const match = text.match(/^```([a-zA-Z0-9_-]*)\n([\s\S]*?)\n?```$/);
+  if (!match) return null;
+
+  return {
+    language: match[1] || null,
+    code: match[2],
+  };
+};
+
+const isLikelyCode = (text: string) => {
+  const normalized = text.replace(/\r\n?/g, '\n');
+  const lines = normalized.split('\n');
+  const nonEmptyLines = lines.filter((line) => line.trim().length > 0);
+
+  if (!normalized.trim()) return false;
+  if (getFencedCode(normalized.trim())) return true;
+  if (nonEmptyLines.some((line) => /^\s{2,}|\t/.test(line))) return true;
+
+  const codeKeywordPattern = /^\s*(import|export|const|let|var|function|class|interface|type|public|private|protected|return|if|else|for|while|switch|case|try|catch|finally|throw|async|await|package|SELECT|UPDATE|INSERT|DELETE|CREATE|ALTER)\b/m;
+  const hasCodeKeyword = codeKeywordPattern.test(normalized);
+  const syntaxTokens = normalized.match(/[{}()[\];=<>]/g)?.length || 0;
+
+  return hasCodeKeyword && syntaxTokens >= Math.max(2, Math.floor(nonEmptyLines.length / 2));
+};
 
 // Custom Video Extension para manter o HTML limpo e organizado
 const Video = Node.create({
@@ -162,6 +189,13 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       >
         <Minus size={18} />
       </button>
+      <button
+        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${editor.isActive('codeBlock') ? 'bg-gray-200 dark:bg-gray-700 text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}
+        type="button" title="Bloco de Código"
+      >
+        <Code2 size={18} />
+      </button>
 
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1 self-center" />
 
@@ -231,6 +265,17 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
         horizontalRule: {},
+        codeBlock: {
+          enableTabIndentation: true,
+          HTMLAttributes: {
+            class: 'rounded-lg bg-gray-950 text-gray-100 p-4 my-4 overflow-x-auto text-sm text-left whitespace-pre font-mono',
+          },
+        },
+        code: {
+          HTMLAttributes: {
+            class: 'rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-gray-900 dark:bg-gray-700 dark:text-gray-100',
+          },
+        },
       }),
       Image,
       Link.configure({ openOnClick: false }),
@@ -248,6 +293,44 @@ const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
       attributes: {
         class: 'prose dark:prose-invert max-w-none focus:outline-none p-4 text-gray-900 dark:text-white break-words text-justify min-h-[400px]',
         lang: 'pt-BR',
+      },
+      handlePaste(view, event) {
+        const clipboardData = event.clipboardData;
+        if (!clipboardData || view.state.selection.$from.parent.type.name === 'codeBlock') {
+          return false;
+        }
+
+        const html = clipboardData.getData('text/html');
+        const vscodeData = clipboardData.getData('vscode-editor-data');
+        const plainText = clipboardData.getData('text/plain');
+
+        if (!plainText || (html && /<pre[\s>]|<code[\s>]/i.test(html))) {
+          return false;
+        }
+
+        const fencedCode = getFencedCode(plainText.trim());
+        const shouldInsertCodeBlock = Boolean(vscodeData) || Boolean(fencedCode) || isLikelyCode(plainText);
+
+        if (!shouldInsertCodeBlock) {
+          return false;
+        }
+
+        const code = (fencedCode?.code || plainText).replace(/\r\n?/g, '\n');
+        const language = fencedCode?.language || null;
+        const codeBlock = view.state.schema.nodes.codeBlock;
+
+        if (!codeBlock) {
+          return false;
+        }
+
+        event.preventDefault();
+        view.dispatch(
+          view.state.tr
+            .replaceSelectionWith(codeBlock.create({ language }, view.state.schema.text(code)))
+            .scrollIntoView()
+        );
+
+        return true;
       },
     },
     immediatelyRender: false,
