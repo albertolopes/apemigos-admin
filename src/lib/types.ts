@@ -132,3 +132,80 @@ export interface CloudinaryImage {
   contentType?: string;
   cloudName?: string;
 }
+
+export type EventoStatus =
+  | 'RASCUNHO'
+  | 'PUBLICADO'
+  | 'OCULTO'
+  | 'ENCERRADO'
+  | 'CANCELADO';
+
+export type EventoCampoTipo =
+  | 'TEXT'
+  | 'TEXTAREA'
+  | 'EMAIL'
+  | 'PHONE'
+  | 'CPF'
+  | 'DATE'
+  | 'NUMBER'
+  | 'SELECT'
+  | 'RADIO'
+  | 'CHECKBOX';
+
+export interface Evento {
+  id: number;
+  titulo: string;
+  slug?: string | null;
+  descricao?: string | null;
+  imagem?: string | null;
+  local?: string | null;
+  dataInicio?: string | null;
+  dataFim?: string | null;
+  inicioInscricoes?: string | null;
+  fimInscricoes?: string | null;
+  limiteInscricoes?: number | null;
+  status: EventoStatus;
+  totalInscricoes?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface EventoOpcaoCampo {
+  id?: number;
+  label: string;
+  valor: string;
+  ordem: number;
+}
+
+export interface EventoCampo {
+  id?: number;
+  label: string;
+  chave: string;
+  tipo: EventoCampoTipo;
+  obrigatorio: boolean;
+  unico: boolean;
+  ordem: number;
+  placeholder?: string | null;
+  textoAjuda?: string | null;
+  ativo: boolean;
+  opcoes: EventoOpcaoCampo[];
+}
+
+export interface EventoInscricaoResposta {
+  campoId?: number;
+  label: string;
+  chave?: string;
+  valor: string | string[] | number | boolean | null;
+}
+
+export interface EventoInscricao {
+  id: number;
+  nome?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+  cpf?: string | null;
+  status?: string | null;
+  dataInscricao?: string | null;
+  createdAt?: string | null;
+  respostas?: EventoInscricaoResposta[];
+}
